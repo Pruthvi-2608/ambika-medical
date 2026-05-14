@@ -29,7 +29,7 @@ function init() {
     updateDateTime();
     setInterval(updateDateTime, 1000); // Update time every second
     generateBillNumber();
-    
+
     // Check local storage for theme
     if (localStorage.getItem('theme') === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -40,13 +40,13 @@ function init() {
 // Update Date and Time
 function updateDateTime() {
     const now = new Date();
-    
+
     const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
     const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-    
+
     const dateStr = now.toLocaleDateString('en-IN', dateOptions);
     const timeStr = now.toLocaleTimeString('en-IN', timeOptions);
-    
+
     dateDisplay.textContent = `Date: ${dateStr}`;
     timeDisplay.textContent = `Time: ${timeStr}`;
     printDateTime.textContent = `${dateStr} ${timeStr}`;
@@ -61,10 +61,10 @@ function generateBillNumber() {
 }
 
 // Auto-fill price based on search/datalist selection
-medicineNameInput.addEventListener('input', function(e) {
+medicineNameInput.addEventListener('input', function (e) {
     const val = e.target.value;
     const list = document.getElementById('medicine-list').options;
-    
+
     for (let i = 0; i < list.length; i++) {
         if (list[i].value === val) {
             medicinePriceInput.value = list[i].getAttribute('data-price');
@@ -74,7 +74,7 @@ medicineNameInput.addEventListener('input', function(e) {
 });
 
 // Sync Customer Name to Invoice instantly
-customerNameInput.addEventListener('input', function(e) {
+customerNameInput.addEventListener('input', function (e) {
     customerDisplay.textContent = e.target.value || "Walk-in Customer";
 });
 
@@ -110,11 +110,11 @@ function addItem() {
 
     // Add to array
     billItems.push(item);
-    
+
     // Update UI
     renderTable();
     calculateTotals();
-    
+
     // Clear inputs
     medicineNameInput.value = '';
     medicinePriceInput.value = '';
@@ -126,7 +126,7 @@ function addItem() {
 function renderTable() {
     // Clear existing table
     tableBody.innerHTML = '';
-    
+
     if (billItems.length === 0) {
         tableBody.innerHTML = `
             <tr id="emptyRow">
@@ -189,8 +189,8 @@ discountInput.addEventListener('input', calculateTotals);
 // Clear Entire Bill
 function clearBill() {
     if (billItems.length === 0) return;
-    
-    if(confirm("Are you sure you want to clear the current bill?")) {
+
+    if (confirm("Are you sure you want to clear the current bill?")) {
         billItems = [];
         customerNameInput.value = '';
         customerDisplay.textContent = 'Walk-in Customer';
@@ -221,7 +221,7 @@ clearBtn.addEventListener('click', clearBill);
 themeToggle.addEventListener('click', toggleDarkMode);
 
 // Allow pressing 'Enter' on quantity field to add item
-medicineQtyInput.addEventListener('keypress', function(e) {
+medicineQtyInput.addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
         addItem();
     }
@@ -250,36 +250,36 @@ if (n8nDownloadBtn) {
             }
         };
 
-        fetch('https://pruthvi.anandd.dev/webhook-test/ambika-medical-invoice', {
+        fetch('https://pruthvi.anandd.dev/webhook/ambika-medical-invoice', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        .then(r => {
-            if (!r.ok) throw new Error('Network response was not ok');
-            return r.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const safeCustomer = (customerNameInput.value.trim() || 'customer').replace(/\s+/g, '_');
-            const date = new Date().toISOString().slice(0,10);
-            a.download = `Ambika_Medical_Invoice_${safeCustomer}_${date}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        })
-        .catch(err => {
-            console.error('Error downloading invoice:', err);
-            alert('Failed to download invoice.');
-        })
-        .finally(() => {
-            // Hide loading
-            loadingSpinner.style.display = 'none';
-            n8nDownloadBtn.disabled = false;
-        });
+            .then(r => {
+                if (!r.ok) throw new Error('Network response was not ok');
+                return r.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const safeCustomer = (customerNameInput.value.trim() || 'customer').replace(/\s+/g, '_');
+                const date = new Date().toISOString().slice(0, 10);
+                a.download = `Ambika_Medical_Invoice_${safeCustomer}_${date}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(err => {
+                console.error('Error downloading invoice:', err);
+                alert('Failed to download invoice.');
+            })
+            .finally(() => {
+                // Hide loading
+                loadingSpinner.style.display = 'none';
+                n8nDownloadBtn.disabled = false;
+            });
     });
 }
 
