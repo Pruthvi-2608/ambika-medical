@@ -1,6 +1,5 @@
 // Global State
 let billItems = [];
-const GST_RATE = 0.18; // 18%
 
 // DOM Elements
 const customerNameInput = document.getElementById('customerName');
@@ -10,7 +9,6 @@ const medicineQtyInput = document.getElementById('medicineQty');
 const addBtn = document.getElementById('addBtn');
 const tableBody = document.getElementById('tableBody');
 const subtotalDisplay = document.getElementById('subtotalDisplay');
-const gstDisplay = document.getElementById('gstDisplay');
 const discountInput = document.getElementById('discountInput');
 const grandTotalDisplay = document.getElementById('grandTotalDisplay');
 const printDiscountDisplay = document.getElementById('printDiscountDisplay');
@@ -22,8 +20,9 @@ const timeDisplay = document.getElementById('time-display');
 const printDateTime = document.getElementById('printDateTime');
 
 const clearBtn = document.getElementById('clearBtn');
-const printBtn = document.getElementById('printBtn');
 const themeToggle = document.getElementById('themeToggle');
+const n8nDownloadBtn = document.getElementById('n8nDownloadBtn');
+const loadingSpinner = document.getElementById('loadingSpinner');
 
 // Initialize Application
 function init() {
@@ -162,30 +161,25 @@ function removeItem(id) {
     calculateTotals();
 }
 
-// Calculate Subtotal, GST, Discount and Grand Total
+// Calculate Subtotal, Discount and Grand Total (no GST)
 function calculateTotals() {
     // Subtotal
     const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
-    
-    // GST
-    const gstAmount = subtotal * GST_RATE;
-    
+
     // Discount
     let discountPercent = parseFloat(discountInput.value) || 0;
     if (discountPercent > 100) discountPercent = 100;
     if (discountPercent < 0) discountPercent = 0;
-    
     const discountAmount = subtotal * (discountPercent / 100);
-    
-    // Grand Total (Subtotal - Discount + GST)
-    const grandTotal = subtotal - discountAmount + gstAmount;
+
+    // Grand Total (Subtotal - Discount)
+    const grandTotal = subtotal - discountAmount;
 
     // Update UI Displays
     subtotalDisplay.textContent = `₹${subtotal.toFixed(2)}`;
-    gstDisplay.textContent = `₹${gstAmount.toFixed(2)}`;
     grandTotalDisplay.textContent = `₹${grandTotal.toFixed(2)}`;
-    
-    // Update print view discount
+
+    // Update print view discount (still used for PDF)
     printDiscountDisplay.textContent = `${discountPercent}% (₹${discountAmount.toFixed(2)})`;
 }
 
@@ -207,20 +201,6 @@ function clearBill() {
     }
 }
 
-// Print Bill
-function printBill() {
-    if (billItems.length === 0) {
-        alert("Cannot print an empty bill. Please add some medicines first.");
-        return;
-    }
-    
-    // Prepare for print
-    customerDisplay.textContent = customerNameInput.value || "Walk-in Customer";
-    
-    // Trigger browser print dialog
-    window.print();
-}
-
 // Toggle Dark Mode
 function toggleDarkMode() {
     const root = document.documentElement;
@@ -238,7 +218,6 @@ function toggleDarkMode() {
 // Event Listeners
 addBtn.addEventListener('click', addItem);
 clearBtn.addEventListener('click', clearBill);
-printBtn.addEventListener('click', printBill);
 themeToggle.addEventListener('click', toggleDarkMode);
 
 // Allow pressing 'Enter' on quantity field to add item
@@ -247,6 +226,62 @@ medicineQtyInput.addEventListener('keypress', function(e) {
         addItem();
     }
 });
+
+// n8n Download Invoice (PDF) handler
+if (n8nDownloadBtn) {
+    n8nDownloadBtn.addEventListener('click', () => {
+        if (billItems.length === 0) {
+            alert("Cannot generate an empty invoice. Please add some medicines first.");
+            return;
+        }
+
+        // Show loading
+        loadingSpinner.style.display = 'inline-block';
+        n8nDownloadBtn.disabled = true;
+
+        const payload = {
+            body: {
+                customer_name: customerNameInput.value.trim() || "Walk-in Customer",
+                items: billItems.map(item => ({
+                    medicine_name: item.name,
+                    price: item.price.toString(),
+                    quantity: item.qty
+                }))
+            }
+        };
+
+        fetch('https://pruthvi.anandd.dev/webhook-test/ambika-medical-invoice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('Network response was not ok');
+            return r.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeCustomer = (customerNameInput.value.trim() || 'customer').replace(/\s+/g, '_');
+            const date = new Date().toISOString().slice(0,10);
+            a.download = `Ambika_Medical_Invoice_${safeCustomer}_${date}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+            console.error('Error downloading invoice:', err);
+            alert('Failed to download invoice.');
+        })
+        .finally(() => {
+            // Hide loading
+            loadingSpinner.style.display = 'none';
+            n8nDownloadBtn.disabled = false;
+        });
+    });
+}
 
 // Run Init on load
 init();
