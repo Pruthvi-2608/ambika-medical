@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambika Medical | Billing Software</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Boxicons for simple icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="logo">
+                <i class='bx bx-plus-medical'></i>
+                <h1>Ambika Medical</h1>
+            </div>
+            <div class="header-actions">
+                <button id="themeToggle" class="icon-btn" title="Toggle Dark Mode">
+                    <i class='bx bx-moon'></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard">
+            
+            <!-- Left Column: Input Form -->
+            <div class="form-section card no-print">
+                <div class="section-header">
+                    <h2><i class='bx bx-receipt'></i> New Bill</h2>
+                    <div class="bill-info">
+                        <span id="date-display">Date: --/--/----</span>
+                        <span id="time-display">Time: --:--</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="customerName">Customer Name</label>
+                    <input type="text" id="customerName" placeholder="Enter customer name" autocomplete="off">
+                </div>
+
+                <div class="medicine-inputs">
+                    <div class="input-group">
+                        <label for="medicineName">Medicine Name <span class="required">*</span></label>
+                        <!-- Simple Datalist for "Search" feature -->
+                        <input type="text" id="medicineName" list="medicine-list" placeholder="Search or type medicine">
+                        <datalist id="medicine-list">
+                            <option value="Paracetamol 500mg" data-price="25">
+                            <option value="Amoxicillin 250mg" data-price="45">
+                            <option value="Cetirizine 10mg" data-price="15">
+                            <option value="Vitamin C Zinc" data-price="60">
+                            <option value="Cough Syrup 100ml" data-price="85">
+                            <option value="Ibuprofen 400mg" data-price="35">
+                            <option value="Band-Aid (Pack of 10)" data-price="20">
+                            <option value="Dolo 650mg" data-price="30">
+                            <option value="Azithromycin 500mg" data-price="120">
+                            <option value="Pantoprazole 40mg" data-price="55">
+                        </datalist>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-group half">
+                            <label for="medicinePrice">Price (₹) <span class="required">*</span></label>
+                            <input type="number" id="medicinePrice" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        <div class="input-group half">
+                            <label for="medicineQty">Quantity <span class="required">*</span></label>
+                            <input type="number" id="medicineQty" placeholder="1" min="1" value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="addBtn" class="btn btn-primary">
+                    <i class='bx bx-cart-add'></i> Add Medicine
+                </button>
+            </div>
+
+            <!-- Right Column: Billing Table & Invoice -->
+            <div class="invoice-section card" id="printable-invoice">
+                <div class="invoice-header print-only">
+                    <div class="print-logo">
+                        <i class='bx bx-plus-medical'></i>
+                        <h1>Ambika Medical</h1>
+                    </div>
+                    <p>123 Health Street, Wellness City, 400001</p>
+                    <p>Phone: +91 98765 43210 | Email: care@ambikamedical.com</p>
+                    <div class="print-divider"></div>
+                </div>
+
+                <div class="invoice-details">
+                    <div class="detail-box">
+                        <p class="label">Bill No:</p>
+                        <p class="value" id="billNoDisplay">AMB-1001</p>
+                    </div>
+                    <div class="detail-box">
+                        <p class="label">Customer:</p>
+                        <p class="value" id="customerDisplay">Walk-in Customer</p>
+                    </div>
+                    <div class="detail-box print-only">
+                        <p class="label">Date & Time:</p>
+                        <p class="value" id="printDateTime">--/--/---- --:--</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="billingTable">
+                        <thead>
+                            <tr>
+                                <th>Medicine Name</th>
+                                <th class="text-right">Price</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-right">Total</th>
+                                <th class="text-center no-print">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Items will be injected here via JS -->
+                            <tr id="emptyRow">
+                                <td colspan="5" class="text-center empty-message">No medicines added yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="invoice-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotalDisplay">₹0.00</span>
+                    </div>
+                    <div class="summary-row no-print">
+                        <span>Discount (%):</span>
+                        <input type="number" id="discountInput" value="0" min="0" max="100" class="small-input">
+                    </div>
+                    <div class="summary-row print-only" style="display: none;" id="printDiscountRow">
+                        <span>Discount:</span>
+                        <span id="printDiscountDisplay">0%</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>GST (18%):</span>
+                        <span id="gstDisplay">₹0.00</span>
+                    </div>
+                    <div class="summary-divider"></div>
+                    <div class="summary-row grand-total">
+                        <span>Grand Total:</span>
+                        <span id="grandTotalDisplay">₹0.00</span>
+                    </div>
+                </div>
+
+                <div class="invoice-actions no-print">
+                    <button id="clearBtn" class="btn btn-danger">
+                        <i class='bx bx-trash'></i> Clear Bill
+                    </button>
+                    <button id="printBtn" class="btn btn-success">
+                        <i class='bx bx-printer'></i> Print / Save PDF
+                    </button>
+                </div>
+                
+                <div class="print-footer print-only">
+                    <p>Thank you for visiting Ambika Medical!</p>
+                    <p>Get well soon.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
